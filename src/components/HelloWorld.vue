@@ -64,7 +64,7 @@
                     <el-button
                         size="mini"
                         type="primary"
-                        @click="handleComplete(scope.$index, scope.row)"
+                        @click="handleComplete(scope)"
                         >Complete</el-button
                     >
                     <el-button size="mini" @click="handleEdit(scope)"
@@ -147,19 +147,21 @@ export default defineComponent({
                 });
             }
         };
-        const handleEdit = (row) => {
+        const handleEdit = (scope) => {
             dialogVisible.value = true;
-            nameEdit.value = row.name;
-            selectIndex.value = row.$index;
+            nameEdit.value = scope.row.name;
+            selectIndex.value = scope.$index;
         };
-        const handleDelete = (row) => {
-            tableData.value.splice(row.$index, 1);
+        const handleDelete = (scope) => {
+            tableData.value.splice(scope.$index, 1);
             store.$patch({
                 allNum: tableData.value.length,
                 unCompleteNum:
                     store.unCompleteNum > 0 ? (store.unCompleteNum -= 1) : 0,
                 completeNum:
-                    store.completeNum > 0 ? (store.completeNum -= 1) : 0,
+                    store.completeNum > 0 && scope.row.completed
+                        ? (store.completeNum -= 1)
+                        : store.completeNum,
             });
         };
         function handleClose(done) {
@@ -172,10 +174,12 @@ export default defineComponent({
         const edit = () => {
             tableData.value[selectIndex.value].name = nameEdit.value;
         };
-        const handleComplete = (index, row) => {
-            tableData.value[index].completed = true;
+        const handleComplete = (scope) => {
+            tableData.value[scope.$index].completed = true;
             store.$patch({
-                completeNum: (store.completeNum += 1),
+                completeNum: scope.row.completed
+                    ? (store.completeNum += 1)
+                    : store.completeNum,
                 unCompleteNum: (store.unCompleteNum -= 1),
             });
         };
